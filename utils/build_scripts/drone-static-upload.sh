@@ -19,12 +19,12 @@ set -o xtrace  # Don't start tracing until *after* we write the ssh key
 
 chmod 600 ssh_key
 
-branch_or_tag=${DRONE_BRANCH:-${DRONE_TAG:-unknown}}
+branch_or_tag=/Beldex/static-windows64/
 
-upload_to="beldex.rocks/${DRONE_REPO// /_}/${branch_or_tag// /_}"
+upload_to="build-windows/${branch_or_tag// /_}"
 
 filename=
-for f in beldex-*.tar.xz beldex-*.zip; do
+for f in beldex-*.zip beldex-*.tar.xz; do
     if [[ $f != beldex-\** ]]; then
         filename=$f
         break
@@ -49,7 +49,9 @@ for p in "${upload_dirs[@]}"; do
 -mkdir $dir_tmp"
 done
 
-sftp -i ssh_key -b - -o StrictHostKeyChecking=off drone@beldex.rocks <<SFTP
+apt-get install ssh -y
+
+sftp -i ssh_key -b - -o StrictHostKeyChecking=off ubuntu@build.beldex.io <<SFTP
 $mkdirs
 put $filename $upload_to
 SFTP
