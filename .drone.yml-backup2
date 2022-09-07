@@ -1,0 +1,138 @@
+---
+{
+   "kind": "pipeline",
+   "name": "Static (win64)",
+   "platform": {
+      "arch": "amd64"
+   },
+   "steps": [
+      {
+         "commands": [
+            "git fetch --tags",
+            "git submodule update --init --recursive --depth=1"
+         ],
+         "image": "drone/git",
+         "name": "submodules"
+      },
+      {
+         "commands": [
+            "echo \"Building on ${DRONE_STAGE_MACHINE}\"",
+            "echo \"man-db man-db/auto-update boolean false\" | debconf-set-selections",
+            "apt-get -o=Dpkg::Use-Pty=0 -q update",
+            "apt-get -o=Dpkg::Use-Pty=0 -q install -y eatmydata",
+            "eatmydata apt-get -o=Dpkg::Use-Pty=0 -q dist-upgrade -y",
+            "eatmydata apt-get -o=Dpkg::Use-Pty=0 -q install -y --no-install-recommends cmake git ca-certificates ninja-build ccache g++ g++-mingw-w64-x86-64 autoconf automake make qttools5-dev file libtool gperf pkg-config patch openssh-client",
+            "mkdir build",
+            "cd build",
+            "cmake .. -G Ninja -DCMAKE_CXX_FLAGS=-fdiagnostics-color=always -DCMAKE_BUILD_TYPE=Release -DLOCAL_MIRROR=https://builds.lokinet.dev/deps -DUSE_LTO=OFF -DCMAKE_TOOLCHAIN_FILE=../cmake/64-bit-toolchain.cmake -DBUILD_STATIC_DEPS=ON -DARCH=x86-64",
+            "ninja -j6 -v",
+            "ninja strip_binaries",
+            "ninja create_zip",
+            "../utils/build_scripts/drone-static-upload.sh",
+            "ssh -i ssh_key ubuntu@build.beldex.io 'Scripts/static-windows64.sh'"
+         ],
+         "environment": {
+            "GTEST_FILTER": "-AddressFromURL.Failure:DNSResolver.DNSSEC*",
+            "SSH_KEY": {
+               "from_secret": "SSH_KEY"
+            }
+         },
+         "image": "ubuntu:focal",
+         "name": "build"
+      }
+      ],
+      
+   "type": "docker"
+}
+---
+{
+   "kind": "pipeline",
+   "name": "Static (focal amd64)",
+   "platform": {
+      "arch": "amd64"
+   },
+   "steps": [
+      {
+         "commands": [
+            "git fetch --tags",
+            "git submodule update --init --recursive --depth=1"
+         ],
+         "image": "drone/git",
+         "name": "submodules"
+      },
+      {
+         "commands": [
+            "echo \"Building on ${DRONE_STAGE_MACHINE}\"",
+            "echo \"man-db man-db/auto-update boolean false\" | debconf-set-selections",
+            "apt-get -o=Dpkg::Use-Pty=0 -q update",
+            "apt-get -o=Dpkg::Use-Pty=0 -q install -y eatmydata",
+            "eatmydata apt-get -o=Dpkg::Use-Pty=0 -q dist-upgrade -y",
+            "eatmydata apt-get -o=Dpkg::Use-Pty=0 -q install -y --no-install-recommends cmake git ca-certificates ninja-build ccache g++-8 autoconf automake make qttools5-dev file libtool gperf pkg-config patch openssh-client gdb",
+            "mkdir build",
+            "cd build",
+            "cmake .. -G Ninja -DCMAKE_CXX_FLAGS=-fdiagnostics-color=always -DCMAKE_BUILD_TYPE=Release -DLOCAL_MIRROR=https://builds.belnet.dev/deps -DUSE_LTO=ON -DBUILD_STATIC_DEPS=ON -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8 -DARCH=x86-64",
+            "ninja -j6 -v",
+            "(sleep 3) | ./bin/beldexd --offline --data-dir=startuptest",
+            "../utils/build_scripts/drone-check-static-libs.sh",
+            "ninja strip_binaries",
+            "ninja create_zip",
+            "../utils/build_scripts/drone-focal-upload.sh"
+         ],
+         "environment": {
+            "GTEST_FILTER": "-AddressFromURL.Failure:DNSResolver.DNSSEC*",
+            "SSH_KEY": {
+               "from_secret": "SSH_KEY"
+            }
+         },
+         "image": "ubuntu:focal",
+         "name": "build"
+      }
+         ],
+   "type": "docker"
+}
+---
+{
+   "kind": "pipeline",
+   "name": "Static (bionic amd64)",
+   "platform": {
+      "arch": "amd64"
+   },
+   "steps": [
+      {
+         "commands": [
+            "git fetch --tags",
+            "git submodule update --init --recursive --depth=1"
+         ],
+         "image": "drone/git",
+         "name": "submodules"
+      },
+      {
+         "commands": [
+            "echo \"Building on ${DRONE_STAGE_MACHINE}\"",
+            "echo \"man-db man-db/auto-update boolean false\" | debconf-set-selections",
+            "apt-get -o=Dpkg::Use-Pty=0 -q update",
+            "apt-get -o=Dpkg::Use-Pty=0 -q install -y eatmydata",
+            "eatmydata apt-get -o=Dpkg::Use-Pty=0 -q dist-upgrade -y",
+            "eatmydata apt-get -o=Dpkg::Use-Pty=0 -q install -y --no-install-recommends cmake git ca-certificates ninja-build ccache g++-8 autoconf automake make qttools5-dev file libtool gperf pkg-config patch openssh-client gdb",
+            "mkdir build",
+            "cd build",
+            "cmake .. -G Ninja -DCMAKE_CXX_FLAGS=-fdiagnostics-color=always -DCMAKE_BUILD_TYPE=Release -DLOCAL_MIRROR=https://builds.lokinet.dev/deps -DUSE_LTO=ON -DBUILD_STATIC_DEPS=ON -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8 -DARCH=x86-64",
+            "ninja -j6 -v",
+            "(sleep 3) | ./bin/beldexd --offline --data-dir=startuptest",
+            "../utils/build_scripts/drone-check-static-libs.sh",
+            "ninja strip_binaries",
+            "ninja create_tarxz",
+            "../utils/build_scripts/drone-bionic-upload.sh",
+        ],
+         "environment": {
+            "GTEST_FILTER": "-AddressFromURL.Failure:DNSResolver.DNSSEC*",
+            "SSH_KEY": {
+               "from_secret": "SSH_KEY"
+            }
+         },
+         "image": "ubuntu:bionic",
+         "name": "build"
+      }
+         ],
+   "type": "docker"
+}
