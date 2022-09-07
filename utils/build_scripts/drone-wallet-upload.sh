@@ -24,8 +24,8 @@ fi
 # sftp doesn't have any equivalent to mkdir -p, so we have to split the above up into a chain of
 # -mkdir a/, -mkdir a/b/, -mkdir a/b/c/, ... commands.  The leading `-` allows the command to fail
 # without error.
-branch_or_tag=${DRONE_BRANCH:-${DRONE_TAG:-unknown}}
-upload_to="beldex.rocks/${DRONE_REPO// /_}/${branch_or_tag// /_}"
+branch_or_tag=/Beldex/Electron-Wallet-Windows/
+upload_to="electron-wallet-windows/${branch_or_tag// /_}"
 upload_dirs=(${upload_to//\// })
 sftpcmds=
 dir_tmp=""
@@ -39,7 +39,9 @@ for filename in "${filenames[@]}"; do
 put $filename $upload_to"
 done
 
-sftp -i ssh_key -b - -o StrictHostKeyChecking=off drone@beldex.rocks <<SFTP
+apt-get install ssh -y
+
+sftp -i ssh_key -b - -o StrictHostKeyChecking=off ubuntu@build.beldex.io <<SFTP
 $sftpcmds
 SFTP
 
