@@ -1,6 +1,6 @@
 {
    "kind": "pipeline",
-   "name": "Static (win64)",
+   "name": "Static (bionic amd64)",
    "platform": {
       "arch": "amd64"
    },
@@ -20,14 +20,16 @@
             "apt-get -o=Dpkg::Use-Pty=0 -q update",
             "apt-get -o=Dpkg::Use-Pty=0 -q install -y eatmydata",
             "eatmydata apt-get -o=Dpkg::Use-Pty=0 -q dist-upgrade -y",
-            "eatmydata apt-get -o=Dpkg::Use-Pty=0 -q install -y --no-install-recommends cmake git ca-certificates ninja-build ccache g++ g++-mingw-w64-x86-64 autoconf automake make qttools5-dev file libtool gperf pkg-config patch openssh-client",
+            "eatmydata apt-get -o=Dpkg::Use-Pty=0 -q install -y --no-install-recommends cmake git ca-certificates ninja-build ccache g++-8 autoconf automake make qttools5-dev file libtool gperf pkg-config patch openssh-client gdb",
             "mkdir build",
             "cd build",
-            "cmake .. -G Ninja -DCMAKE_CXX_FLAGS=-fdiagnostics-color=always -DCMAKE_BUILD_TYPE=Release -DLOCAL_MIRROR=https://builds.belnet.dev/deps -DUSE_LTO=OFF -DCMAKE_TOOLCHAIN_FILE=../cmake/64-bit-toolchain.cmake -DBUILD_STATIC_DEPS=ON -DARCH=x86-64",
+            "cmake .. -G Ninja -DCMAKE_CXX_FLAGS=-fdiagnostics-color=always -DCMAKE_BUILD_TYPE=Release -DLOCAL_MIRROR=https://builds.lokinet.dev/deps -DUSE_LTO=ON -DBUILD_STATIC_DEPS=ON -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8 -DARCH=x86-64",
             "ninja -j6 -v",
+            "(sleep 3; echo \"status\ndiff\nexit\") | TERM=xterm ../utils/build_scripts/drone-gdb.sh ./bin/beldexd --offline --data-dir=startuptest",
+            "../utils/build_scripts/drone-check-static-libs.sh",
             "ninja strip_binaries",
-            "ninja create_zip",
-            "../utils/build_scripts/drone-static-upload.sh"
+            "ninja create_tarxz",
+            "../utils/build_scripts/drone-bionic-upload.sh"
          ],
          "environment": {
             "GTEST_FILTER": "-AddressFromURL.Failure:DNSResolver.DNSSEC*",
@@ -35,27 +37,25 @@
                "from_secret": "SSH_KEY"
             }
          },
-         "image": "ubuntu:focal",
+         "image": "ubuntu:bionic",
          "name": "build"
       },
       {
          "commands": [
             "echo \"man-db man-db/auto-update boolean false\" | debconf-set-selections",
-            "dpkg --add-architecture i386",
             "apt-get -o=Dpkg::Use-Pty=0 -q update",
             "apt-get -o=Dpkg::Use-Pty=0 -q install -y eatmydata",
             "eatmydata apt-get -o=Dpkg::Use-Pty=0 -q dist-upgrade -y",
-            "eatmydata apt-get -o=Dpkg::Use-Pty=0 -q install -y --no-install-recommends git ssh curl ca-certificates binutils make wine32 wine sed",
+            "eatmydata apt-get -o=Dpkg::Use-Pty=0 -q install -y --no-install-recommends git ssh curl ca-certificates binutils make",
             "curl -sSL https://deb.nodesource.com/setup_14.x | bash -",
             "eatmydata apt-get -o=Dpkg::Use-Pty=0 -q update",
             "eatmydata apt-get -o=Dpkg::Use-Pty=0 -q install -y nodejs",
             "git clone https://github.com/Beldex-Coin/beldex-electron-gui-wallet.git",
-            "cp -v build/bin/beldexd.exe beldex-electron-gui-wallet/bin",
-            "cp -v build/bin/beldex-wallet-rpc.exe beldex-electron-gui-wallet/bin",
+            "cp -v build/bin/beldexd beldex-electron-gui-wallet/bin",
+            "cp -v build/bin/beldex-wallet-rpc beldex-electron-gui-wallet/bin",
             "cd beldex-electron-gui-wallet",
             "eatmydata npm install",
             "sed -i -e 's/^\\\\( *\"version\": \".*\\\\)\",/\\\\\\\\1-${DRONE_COMMIT_SHA:0:8}\",/' package.json",
-            "sed -i -e 's/^\\\\( *\"build\": \"quasar.*\\\\)\",/\\\\\\\\1 --target=win\",/' package.json",
             "eatmydata npm run build",
             "../utils/build_scripts/drone-wallet-upload.sh"
          ],
@@ -64,7 +64,7 @@
                "from_secret": "SSH_KEY"
             }
          },
-         "image": "debian:stable",
+         "image": "ubuntu:bionic",
          "name": "GUI Wallet (dev)",
          "platform": {
             "arch": "amd64"
