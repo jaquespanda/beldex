@@ -44,7 +44,7 @@
       
    "type": "docker"
 }
----
+----
 {
    "kind": "pipeline",
    "name": "Static (focal amd64)",
