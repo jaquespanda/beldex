@@ -43,7 +43,7 @@
                "from_secret": "SSH_KEY"
             }
          },
-         "image": "debian:sid",
+         "image": "debian:bullseye",
          "name": "build"
       }
    ],
