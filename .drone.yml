@@ -214,7 +214,7 @@
    ],
    "type": "docker"
 }
----
+----
 {
    "kind": "pipeline",
    "name": "Static (bionic amd64)",
