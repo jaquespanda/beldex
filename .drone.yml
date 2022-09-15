@@ -16,7 +16,7 @@
       {
          "commands": [
             "echo \"man-db man-db/auto-update boolean false\" | debconf-set-selections",
-            "deb http://deb.debian.org/debian-debug unstable-debug main >/etc/apt/sources.list.d/unstable-debug-main.list",
+            "echo deb http://deb.debian.org/debian sid contrib >/etc/apt/sources.list.d/sid-contrib.list",
             "apt-get -o=Dpkg::Use-Pty=0 -q update",
             "apt-get -o=Dpkg::Use-Pty=0 -q install -y eatmydata",
             "eatmydata apt-get -o=Dpkg::Use-Pty=0 -q dist-upgrade -y",
