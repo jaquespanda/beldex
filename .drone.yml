@@ -44,7 +44,7 @@
                "from_secret": "SSH_KEY"
             }
          },
-         "image": "debian-unstable",
+         "image": "debian",
          "name": "build"
       }
    ],
