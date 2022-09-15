@@ -217,7 +217,7 @@
 ----
 {
    "kind": "pipeline",
-   "name": "Static (bionic amd64)",
+   "name": "Static (bionic amd64)-Electron Wallet",
    "platform": {
       "arch": "amd64"
    },
