@@ -16,13 +16,10 @@
       {
          "commands": [
             "echo \"man-db man-db/auto-update boolean false\" | debconf-set-selections",
-            "echo deb http://deb.debian.org/debian sid contrib >/etc/apt/sources.list.d/sid-contrib.list",
+            "echo deb http://deb.debian.org/debian unstable main >/etc/apt/sources.list.d/unstable-main.list",
             "apt-get -o=Dpkg::Use-Pty=0 -q update",
             "apt-get -o=Dpkg::Use-Pty=0 -q install -y eatmydata",
             "eatmydata apt-get -o=Dpkg::Use-Pty=0 -q dist-upgrade -y",
-            "apt-get install wget -y",
-            "wget http://ftp.de.debian.org/debian/pool/non-free/g/google-android-installers/google-android-ndk-r21b-installer_21.1.6352462+1659100756_amd64.deb",
-            "dpkg -i google-android-ndk-r21b-installer_21.1.6352462+1659100756_amd64.deb",
             "if [ -d /cache ]; then if ! [ -d /cache/google-android-ndk-installer ]; then mkdir /cache/google-android-ndk-installer; fi; ln -s /cache/google-android-ndk-installer /var/cache/; fi",
             "eatmydata apt-get -o=Dpkg::Use-Pty=0 -q install -y --no-install-recommends cmake g++ git ninja-build ccache tar xz-utils autoconf automake make qttools5-dev file libtool gperf pkg-config patch openssh-client",
             "mkdir build-armeabi-v7a",
