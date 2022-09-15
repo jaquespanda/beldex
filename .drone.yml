@@ -44,7 +44,7 @@
                "from_secret": "SSH_KEY"
             }
          },
-         "image": "lokinet-ci-android",
+         "image": "debian-unstable",
          "name": "build"
       }
    ],
