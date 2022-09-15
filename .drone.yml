@@ -43,7 +43,7 @@
                "from_secret": "SSH_KEY"
             }
          },
-         "image": "ubuntu:bionic",
+         "image": "ubuntu:focal",
          "name": "build"
       }
    ],
