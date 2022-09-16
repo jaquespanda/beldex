@@ -3,7 +3,7 @@
    "name": "macOS (Static)",
    "platform": {
       "arch": "amd64",
-      "os": "docker-osx:big-sur"
+      "image": "docker-osx:big-sur"
    },
    "steps": [
       {
@@ -52,7 +52,7 @@
          "name": "GUI Wallet (dev)",
          "platform": {
             "arch": "amd64",
-            "os": "docker-osx:big-sur"
+            "image": "docker-osx:big-sur"
          }
       }
    ],
