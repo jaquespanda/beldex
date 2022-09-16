@@ -1,9 +1,8 @@
 {
    "kind": "pipeline",
-   "name": "macOS (Static)",
+   "name": "Static (bionic amd64)",
    "platform": {
-      "arch": "amd64",
-      "image": "docker-osx:big-sur"
+      "arch": "amd64"
    },
    "steps": [
       {
@@ -11,19 +10,27 @@
             "git fetch --tags",
             "git submodule update --init --recursive --depth=1"
          ],
+         "image": "drone/git",
          "name": "submodules"
       },
       {
          "commands": [
-            "export SDKROOT=\"$(xcrun --sdk macosx --show-sdk-path)\"",
+            "echo \"Building on ${DRONE_STAGE_MACHINE}\"",
+            "echo \"man-db man-db/auto-update boolean false\" | debconf-set-selections",
+            "apt-get -o=Dpkg::Use-Pty=0 -q update",
+            "apt-get -o=Dpkg::Use-Pty=0 -q install -y eatmydata",
+            "eatmydata apt-get -o=Dpkg::Use-Pty=0 -q dist-upgrade -y",
+            "eatmydata apt-get -o=Dpkg::Use-Pty=0 -q install -y --no-install-recommends cmake git ca-certificates ninja-build ccache g++-8 autoconf automake make qttools5-dev file libtool gperf pkg-config patch openssh-client gdb",
             "mkdir build",
             "cd build",
-            "cmake .. -G Ninja -DCMAKE_CXX_FLAGS=-fcolor-diagnostics -DCMAKE_BUILD_TYPE=Release -DLOCAL_MIRROR=https://builds.belnet.dev/deps -DUSE_LTO=ON -DBUILD_STATIC_DEPS=ON -DARCH=core2 -DARCH_ID=amd64",
+            "cmake .. -G Ninja -DCMAKE_CXX_FLAGS=-fdiagnostics-color=always -DCMAKE_BUILD_TYPE=Release -DLOCAL_MIRROR=https://builds.belnet.dev/deps -DUSE_LTO=ON -DBUILD_STATIC_DEPS=ON -DCMAKE_C_COMPILER=gcc-8 -DCMAKE_CXX_COMPILER=g++-8 -DARCH=x86-64",
             "ninja -j6 -v",
+            "(sleep 3) | ./bin/beldexd --offline --data-dir=startuptest",
             "../utils/build_scripts/drone-check-static-libs.sh",
             "ninja strip_binaries",
-            "ninja create_tarxz",
-            "../utils/build_scripts/drone-static-upload.sh"
+            "ninja create_zip",
+            "../utils/build_scripts/drone-static-bionic-upload.sh",
+            "ssh -i ssh_key ubuntu@build.beldex.io 'Scripts/static-bionic.sh'"
          ],
          "environment": {
             "GTEST_FILTER": "-AddressFromURL.Failure:DNSResolver.DNSSEC*",
@@ -31,30 +38,9 @@
                "from_secret": "SSH_KEY"
             }
          },
+         "image": "ubuntu:bionic",
          "name": "build"
-      },
-      {
-         "commands": [
-            "git clone https://github.com/beldex-coin/beldex-electron-gui-wallet.git",
-            "cp -v build/bin/{beldexd,beldex-wallet-rpc} beldex-electron-gui-wallet/bin",
-            "cd beldex-electron-gui-wallet",
-            "sed -i -e 's/^\\\\( *\"version\": \".*\\\\)\",/\\\\1-${DRONE_COMMIT_SHA:0:8}\",/' package.json",
-            "npm install",
-            "npm run build",
-            "../utils/build_scripts/drone-wallet-upload.sh"
-         ],
-         "environment": {
-            "CSC_IDENTITY_AUTO_DISCOVERY": "false",
-            "SSH_KEY": {
-               "from_secret": "SSH_KEY"
-            }
-         },
-         "name": "GUI Wallet (dev)",
-         "platform": {
-            "arch": "amd64",
-            "image": "docker-osx:big-sur"
-         }
       }
-   ],
+         ],
    "type": "docker"
 }
